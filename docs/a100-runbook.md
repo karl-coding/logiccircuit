@@ -71,6 +71,15 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
+If 4-bit loading fails with a `bitsandbytes` version error, upgrade explicitly:
+
+```bash
+pip install -U "bitsandbytes>=0.46.1"
+```
+
+If Colab still imports the old package after upgrading, restart the runtime and
+rerun the install command.
+
 Create a starter task file if `data/tasks.jsonl` does not exist:
 
 ```bash

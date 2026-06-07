@@ -1,5 +1,5 @@
 accelerate>=0.34
-bitsandbytes>=0.43
+bitsandbytes>=0.46.1
 peft>=0.12
 numpy>=1.26
 pytest>=8.0
