@@ -85,16 +85,19 @@ python -m src.generate_candidates \
   --output runs/base_candidates_smoke.jsonl \
   --model Qwen/Qwen2.5-Coder-3B-Instruct \
   --candidates-per-task 8 \
+  --splits train \
   --max-tasks 20
 ```
 
-Evaluate base candidates:
+Evaluate base train candidates:
 
 ```bash
 python -m src.evaluate \
   --tasks data/tasks.jsonl \
   --candidates runs/base_candidates_smoke.jsonl \
-  --output runs/base_eval_smoke.jsonl
+  --output runs/base_eval_smoke.jsonl \
+  --splits train \
+  --only-with-candidates
 ```
 
 Filter passing candidates into supervised rows:
@@ -103,7 +106,8 @@ Filter passing candidates into supervised rows:
 python -m src.filter_candidates \
   --tasks data/tasks.jsonl \
   --candidates runs/base_candidates_smoke.jsonl \
-  --output runs/sft_train_smoke.jsonl
+  --output runs/sft_train_smoke.jsonl \
+  --splits train
 ```
 
 Train a short QLoRA smoke adapter:
@@ -125,6 +129,7 @@ python -m src.generate_with_adapter \
   --base-model Qwen/Qwen2.5-Coder-3B-Instruct \
   --adapter-dir runs/qwen_coder_3b_smoke_adapter \
   --candidates-per-task 8 \
+  --splits train \
   --max-tasks 20
 ```
 
@@ -134,7 +139,9 @@ Evaluate adapter candidates:
 python -m src.evaluate \
   --tasks data/tasks.jsonl \
   --candidates runs/adapter_candidates_smoke.jsonl \
-  --output runs/adapter_eval_smoke.jsonl
+  --output runs/adapter_eval_smoke.jsonl \
+  --splits train \
+  --only-with-candidates
 ```
 
 Compare baseline and adapter:
@@ -143,6 +150,24 @@ Compare baseline and adapter:
 python -m src.compare_eval \
   --baseline runs/base_eval_smoke.jsonl \
   --adapter runs/adapter_eval_smoke.jsonl
+```
+
+For held-out evaluation, generate test split candidates separately:
+
+```bash
+python -m src.generate_candidates \
+  --tasks data/tasks.jsonl \
+  --output runs/base_candidates_heldout.jsonl \
+  --model Qwen/Qwen2.5-Coder-3B-Instruct \
+  --candidates-per-task 8 \
+  --splits test-similar test-hard test-transfer
+
+python -m src.evaluate \
+  --tasks data/tasks.jsonl \
+  --candidates runs/base_candidates_heldout.jsonl \
+  --output runs/base_eval_heldout.jsonl \
+  --splits test-similar test-hard test-transfer \
+  --only-with-candidates
 ```
 
 If the smoke run completes, remove `--max-tasks 20` and `--max-steps 20` for

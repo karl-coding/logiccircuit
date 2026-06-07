@@ -15,8 +15,11 @@ def filter_candidates(
     candidates_path: Path,
     output_path: Path,
     max_per_task: int,
+    splits: set[str] | None,
 ) -> int:
     tasks = [CodeRepairTask.from_json(row) for row in read_jsonl(tasks_path)]
+    if splits is not None:
+        tasks = [task for task in tasks if task.split in splits]
     candidates = [Candidate.from_json(row) for row in read_jsonl(candidates_path)]
 
     candidates_by_task: dict[str, list[Candidate]] = defaultdict(list)
@@ -55,12 +58,18 @@ def main() -> None:
     parser.add_argument("--candidates", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--max-per-task", default=1, type=int)
+    parser.add_argument("--splits", nargs="+")
     args = parser.parse_args()
 
-    count = filter_candidates(args.tasks, args.candidates, args.output, args.max_per_task)
+    count = filter_candidates(
+        args.tasks,
+        args.candidates,
+        args.output,
+        args.max_per_task,
+        set(args.splits) if args.splits else None,
+    )
     print(f"wrote {count} training rows to {args.output}")
 
 
 if __name__ == "__main__":
     main()
-

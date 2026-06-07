@@ -84,7 +84,8 @@ python -m src.generate_candidates \
   --tasks data/tasks.jsonl \
   --output runs/base_candidates.jsonl \
   --model Qwen/Qwen2.5-Coder-3B-Instruct \
-  --candidates-per-task 8
+  --candidates-per-task 8 \
+  --splits train
 ```
 
 Train a QLoRA adapter:

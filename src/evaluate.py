@@ -13,8 +13,17 @@ def pass_at_k(results: list[bool], k: int) -> bool:
     return any(results[:k])
 
 
-def evaluate(tasks_path: Path, candidates_path: Path, output_path: Path, ks: list[int]) -> dict[str, object]:
+def evaluate(
+    tasks_path: Path,
+    candidates_path: Path,
+    output_path: Path,
+    ks: list[int],
+    splits: set[str] | None,
+    only_with_candidates: bool,
+) -> dict[str, object]:
     tasks = [CodeRepairTask.from_json(row) for row in read_jsonl(tasks_path)]
+    if splits is not None:
+        tasks = [task for task in tasks if task.split in splits]
     candidates = [Candidate.from_json(row) for row in read_jsonl(candidates_path)]
 
     task_by_id = {task.id: task for task in tasks}
@@ -27,6 +36,8 @@ def evaluate(tasks_path: Path, candidates_path: Path, output_path: Path, ks: lis
 
     for task in tasks:
         ranked = sorted(candidates_by_task.get(task.id, []), key=lambda item: item.rank)
+        if only_with_candidates and not ranked:
+            continue
         candidate_results: list[bool] = []
 
         for candidate in ranked:
@@ -69,13 +80,21 @@ def main() -> None:
     parser.add_argument("--candidates", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--k", nargs="+", default=[1, 3, 8], type=int)
+    parser.add_argument("--splits", nargs="+")
+    parser.add_argument("--only-with-candidates", action="store_true")
     args = parser.parse_args()
 
-    summary = evaluate(args.tasks, args.candidates, args.output, args.k)
+    summary = evaluate(
+        args.tasks,
+        args.candidates,
+        args.output,
+        args.k,
+        set(args.splits) if args.splits else None,
+        args.only_with_candidates,
+    )
     for split, metrics in summary.items():
         print(split, metrics)
 
 
 if __name__ == "__main__":
     main()
-

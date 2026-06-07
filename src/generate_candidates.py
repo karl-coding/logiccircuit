@@ -76,6 +76,7 @@ def generate_candidates(
     model_name: str,
     candidates_per_task: int,
     max_tasks: int | None,
+    splits: set[str] | None,
     max_new_tokens: int,
     temperature: float,
     top_p: float,
@@ -83,6 +84,8 @@ def generate_candidates(
 ) -> int:
     tokenizer, model = load_model(model_name, load_in_4bit)
     tasks = [CodeRepairTask.from_json(row) for row in read_jsonl(tasks_path)]
+    if splits is not None:
+        tasks = [task for task in tasks if task.split in splits]
     if max_tasks is not None:
         tasks = tasks[:max_tasks]
 
@@ -129,6 +132,7 @@ def main() -> None:
     parser.add_argument("--model", default="Qwen/Qwen2.5-Coder-3B-Instruct")
     parser.add_argument("--candidates-per-task", default=8, type=int)
     parser.add_argument("--max-tasks", type=int)
+    parser.add_argument("--splits", nargs="+")
     parser.add_argument("--max-new-tokens", default=512, type=int)
     parser.add_argument("--temperature", default=0.7, type=float)
     parser.add_argument("--top-p", default=0.95, type=float)
@@ -141,6 +145,7 @@ def main() -> None:
         model_name=args.model,
         candidates_per_task=args.candidates_per_task,
         max_tasks=args.max_tasks,
+        splits=set(args.splits) if args.splits else None,
         max_new_tokens=args.max_new_tokens,
         temperature=args.temperature,
         top_p=args.top_p,
@@ -151,4 +156,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
