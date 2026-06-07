@@ -1,0 +1,5 @@
+{"task_id":"digits_sum_001","rank":1,"code":"def digit_sum(n):\n    return sum(int(ch) for ch in str(abs(n)))"}
+{"task_id":"digits_sum_001","rank":2,"code":"def digit_sum(n):\n    total = 0\n    for ch in str(n):\n        total += int(ch)\n    return total"}
+{"task_id":"dedupe_001","rank":1,"code":"def unique_items(items):\n    seen = set()\n    out = []\n    for item in items:\n        if item not in seen:\n            seen.add(item)\n            out.append(item)\n    return out"}
+{"task_id":"clamp_001","rank":1,"code":"def clamp(x, lo, hi):\n    if x < lo:\n        return lo\n    if x > hi:\n        return hi\n    return x"}
+
