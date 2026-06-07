@@ -78,6 +78,8 @@ python -m src.filter_candidates \
 Generate real model candidates on A100:
 
 ```bash
+python -m src.make_tasks --output data/tasks.jsonl
+
 python -m src.generate_candidates \
   --tasks data/tasks.jsonl \
   --output runs/base_candidates.jsonl \

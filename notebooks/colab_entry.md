@@ -15,6 +15,12 @@ Upload this project directory or clone it into Colab.
 
 ## 3. Baseline
 
+Create a starter task file:
+
+```bash
+python -m src.make_tasks --output data/tasks.jsonl
+```
+
 Generate candidate solutions for `data/sample_tasks.jsonl`, then evaluate:
 
 ```bash

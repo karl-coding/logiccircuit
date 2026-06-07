@@ -71,6 +71,12 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
+Create a starter task file if `data/tasks.jsonl` does not exist:
+
+```bash
+python -m src.make_tasks --output data/tasks.jsonl
+```
+
 Generate base-model candidates. Start with a 20-task smoke run:
 
 ```bash
