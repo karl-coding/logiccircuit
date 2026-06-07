@@ -1,4 +1,8 @@
+accelerate>=0.34
+bitsandbytes>=0.43
+peft>=0.12
 numpy>=1.26
 pytest>=8.0
 pyyaml>=6.0
-
+torch>=2.3
+transformers>=4.44

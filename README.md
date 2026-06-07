@@ -75,6 +75,36 @@ python -m src.filter_candidates \
   --output runs/sft_train.jsonl
 ```
 
+Generate real model candidates on A100:
+
+```bash
+python -m src.generate_candidates \
+  --tasks data/tasks.jsonl \
+  --output runs/base_candidates.jsonl \
+  --model Qwen/Qwen2.5-Coder-3B-Instruct \
+  --candidates-per-task 8
+```
+
+Train a QLoRA adapter:
+
+```bash
+python -m src.train_qlora \
+  --train runs/sft_train.jsonl \
+  --output-dir runs/qwen_coder_3b_adapter \
+  --model Qwen/Qwen2.5-Coder-3B-Instruct
+```
+
+Evaluate the trained adapter by generating candidates and reusing the verifier:
+
+```bash
+python -m src.generate_with_adapter \
+  --tasks data/tasks.jsonl \
+  --output runs/adapter_candidates.jsonl \
+  --base-model Qwen/Qwen2.5-Coder-3B-Instruct \
+  --adapter-dir runs/qwen_coder_3b_adapter \
+  --candidates-per-task 8
+```
+
 The scripts use standard Python plus the lightweight packages in
 `requirements.txt`. Model training dependencies are intentionally left for the
 Colab runtime described in `notebooks/colab_entry.md`.

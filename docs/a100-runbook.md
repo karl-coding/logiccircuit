@@ -63,6 +63,85 @@ python -m src.filter_candidates \
   --output runs/sft_train.jsonl
 ```
 
+## Real Model Loop
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+Generate base-model candidates. Start with a 20-task smoke run:
+
+```bash
+python -m src.generate_candidates \
+  --tasks data/tasks.jsonl \
+  --output runs/base_candidates_smoke.jsonl \
+  --model Qwen/Qwen2.5-Coder-3B-Instruct \
+  --candidates-per-task 8 \
+  --max-tasks 20
+```
+
+Evaluate base candidates:
+
+```bash
+python -m src.evaluate \
+  --tasks data/tasks.jsonl \
+  --candidates runs/base_candidates_smoke.jsonl \
+  --output runs/base_eval_smoke.jsonl
+```
+
+Filter passing candidates into supervised rows:
+
+```bash
+python -m src.filter_candidates \
+  --tasks data/tasks.jsonl \
+  --candidates runs/base_candidates_smoke.jsonl \
+  --output runs/sft_train_smoke.jsonl
+```
+
+Train a short QLoRA smoke adapter:
+
+```bash
+python -m src.train_qlora \
+  --train runs/sft_train_smoke.jsonl \
+  --output-dir runs/qwen_coder_3b_smoke_adapter \
+  --model Qwen/Qwen2.5-Coder-3B-Instruct \
+  --max-steps 20
+```
+
+Generate candidates from the adapter:
+
+```bash
+python -m src.generate_with_adapter \
+  --tasks data/tasks.jsonl \
+  --output runs/adapter_candidates_smoke.jsonl \
+  --base-model Qwen/Qwen2.5-Coder-3B-Instruct \
+  --adapter-dir runs/qwen_coder_3b_smoke_adapter \
+  --candidates-per-task 8 \
+  --max-tasks 20
+```
+
+Evaluate adapter candidates:
+
+```bash
+python -m src.evaluate \
+  --tasks data/tasks.jsonl \
+  --candidates runs/adapter_candidates_smoke.jsonl \
+  --output runs/adapter_eval_smoke.jsonl
+```
+
+Compare baseline and adapter:
+
+```bash
+python -m src.compare_eval \
+  --baseline runs/base_eval_smoke.jsonl \
+  --adapter runs/adapter_eval_smoke.jsonl
+```
+
+If the smoke run completes, remove `--max-tasks 20` and `--max-steps 20` for
+the full run. Keep the 10-hour hard stop.
+
 ## Timely Validation Gates
 
 Stop early if:
@@ -94,4 +173,3 @@ verifier-guided QLoRA beats random-SFT control
 If only training or similar tasks improve, the run likely learned a task format.
 If similar, hard, transfer, and hidden tests improve together, the result is
 evidence of local logic-circuit strengthening.
-
