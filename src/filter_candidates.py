@@ -17,6 +17,16 @@ def filter_candidates(
     max_per_task: int,
     splits: set[str] | None,
 ) -> int:
+    if not tasks_path.exists():
+        raise FileNotFoundError(
+            f"task file not found: {tasks_path}. "
+            "Run src.make_tasks first or provide an existing JSONL task file."
+        )
+    if not candidates_path.exists():
+        raise FileNotFoundError(
+            f"candidate file not found: {candidates_path}. Run src.generate_candidates first."
+        )
+
     tasks = [CodeRepairTask.from_json(row) for row in read_jsonl(tasks_path)]
     if splits is not None:
         tasks = [task for task in tasks if task.split in splits]

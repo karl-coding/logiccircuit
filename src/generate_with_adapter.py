@@ -50,12 +50,25 @@ def generate_with_adapter(
     temperature: float,
     top_p: float,
 ) -> int:
-    tokenizer, model = load_adapter_model(base_model, adapter_dir)
+    if not tasks_path.exists():
+        raise FileNotFoundError(
+            f"task file not found: {tasks_path}. "
+            "Run src.make_tasks first or provide an existing JSONL task file."
+        )
+    if not adapter_dir.exists():
+        raise FileNotFoundError(
+            f"adapter directory not found: {adapter_dir}. Run src.train_qlora first."
+        )
+
     tasks = [CodeRepairTask.from_json(row) for row in read_jsonl(tasks_path)]
     if splits is not None:
         tasks = [task for task in tasks if task.split in splits]
     if max_tasks is not None:
         tasks = tasks[:max_tasks]
+    if not tasks:
+        raise ValueError(f"no tasks selected from {tasks_path}")
+
+    tokenizer, model = load_adapter_model(base_model, adapter_dir)
 
     rows: list[dict[str, object]] = []
     for index, task in enumerate(tasks, start=1):

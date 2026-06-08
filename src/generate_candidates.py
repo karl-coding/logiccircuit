@@ -82,12 +82,21 @@ def generate_candidates(
     top_p: float,
     load_in_4bit: bool,
 ) -> int:
-    tokenizer, model = load_model(model_name, load_in_4bit)
+    if not tasks_path.exists():
+        raise FileNotFoundError(
+            f"task file not found: {tasks_path}. "
+            "Run src.make_tasks first or provide an existing JSONL task file."
+        )
+
     tasks = [CodeRepairTask.from_json(row) for row in read_jsonl(tasks_path)]
     if splits is not None:
         tasks = [task for task in tasks if task.split in splits]
     if max_tasks is not None:
         tasks = tasks[:max_tasks]
+    if not tasks:
+        raise ValueError(f"no tasks selected from {tasks_path}")
+
+    tokenizer, model = load_model(model_name, load_in_4bit)
 
     rows: list[dict[str, object]] = []
     for index, task in enumerate(tasks, start=1):
