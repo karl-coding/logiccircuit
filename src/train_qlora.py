@@ -107,6 +107,12 @@ def train_qlora(
     lora_dropout: float,
     max_steps: int,
 ) -> None:
+    if not train_path.exists():
+        raise FileNotFoundError(
+            f"training file not found: {train_path}. "
+            "Run src.filter_candidates first to create SFT rows."
+        )
+
     tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
@@ -211,4 +217,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
