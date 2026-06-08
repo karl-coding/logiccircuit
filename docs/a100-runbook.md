@@ -45,6 +45,30 @@ Check runtime:
 python -m src.runtime_check --config configs/a100_10h.yaml
 ```
 
+Mount Google Drive before long runs:
+
+```python
+from google.colab import drive
+drive.mount('/content/drive')
+```
+
+Back up important generated files to the same folder layout in Drive:
+
+```bash
+python -m src.backup_to_drive \
+  --project-root /content/logiccircuit \
+  --drive-root /content/drive/MyDrive/logiccircuit
+```
+
+This preserves paths such as:
+
+```text
+data/tasks.jsonl
+runs/base_candidates_*.jsonl
+runs/sft_train_*.jsonl
+runs/*adapter*/
+```
+
 Run verifier smoke test:
 
 ```bash

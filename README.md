@@ -119,6 +119,14 @@ training:
 python -m src.runtime_check --config configs/a100_10h.yaml
 ```
 
+Back up important Colab artifacts to Google Drive with the same folder layout:
+
+```bash
+python -m src.backup_to_drive \
+  --project-root /content/logiccircuit \
+  --drive-root /content/drive/MyDrive/logiccircuit
+```
+
 ## Success Criteria
 
 A run is useful only if held-out behavior improves, not just training loss.
