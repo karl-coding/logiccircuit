@@ -8,6 +8,12 @@ from .io_utils import read_jsonl
 
 
 def summarize(eval_path: Path) -> dict[str, dict[str, float]]:
+    if not eval_path.exists():
+        raise FileNotFoundError(
+            f"evaluation file not found: {eval_path}. "
+            "Run src.evaluate for the matching baseline or adapter candidates first."
+        )
+
     rows = read_jsonl(eval_path)
     split_task_results: dict[str, dict[str, list[bool]]] = defaultdict(lambda: defaultdict(list))
 
@@ -51,4 +57,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
