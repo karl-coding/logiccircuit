@@ -1,37 +1,7 @@
-experiment_name: a100_10h_code_repair
-hardware_profile: colab_a100_40gb
+# Deprecated compatibility alias.
+# This project is currently standardized on T4. Use configs/t4_10h.yaml as the
+# source of truth for Colab runs.
 
-model:
-  base_model: Qwen/Qwen2.5-Coder-3B-Instruct
-  fallback_model: deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
-  quantization: 4bit
-  lora_rank: 16
-  lora_alpha: 32
-  lora_dropout: 0.05
-
-generation:
-  candidates_per_task: 8
-  temperature: 0.7
-  top_p: 0.95
-  max_new_tokens: 512
-
-training:
-  learning_rate: 0.0002
-  epochs: 2
-  max_seq_length: 1536
-  train_batch_size: 1
-  gradient_accumulation_steps: 8
-  target_train_rows: 1000
-  max_train_rows: 3000
-
-evaluation:
-  max_eval_tasks_per_split: 200
-  pass_at_k: [1, 3, 8]
-  timeout_seconds: 2.0
-  require_hidden_tests: true
-  require_random_sft_control: true
-
-budget:
-  expected_gpu_hours: 4.0-8.0
-  hard_stop_gpu_hours: 10.0
+alias_for: configs/t4_10h.yaml
+hardware_profile: colab_t4_16gb
 

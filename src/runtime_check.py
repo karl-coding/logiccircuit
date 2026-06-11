@@ -21,7 +21,7 @@ class RuntimeReport:
     cuda_available: bool
     gpu_name: str | None
     gpu_memory_gb: float | None
-    a100_ready: bool
+    t4_ready: bool
     warnings: list[str]
 
 
@@ -48,7 +48,7 @@ def inspect_runtime(config_path: Path | None = None) -> RuntimeReport:
         else:
             gpu_name = None
             gpu_memory_gb = None
-            warnings.append("CUDA is not available. Select an A100 GPU runtime in Colab.")
+            warnings.append("CUDA is not available. Select a T4 GPU runtime in Colab.")
     except Exception as exc:
         torch_available = False
         cuda_available = False
@@ -56,11 +56,11 @@ def inspect_runtime(config_path: Path | None = None) -> RuntimeReport:
         gpu_memory_gb = None
         warnings.append(f"torch unavailable or failed to load: {exc}")
 
-    a100_ready = bool(cuda_available and gpu_memory_gb is not None and gpu_memory_gb >= 32)
-    if cuda_available and not a100_ready:
-        warnings.append("Detected GPU memory is below 32 GB. This project is configured for A100.")
-    if gpu_name and "A100" not in gpu_name and a100_ready:
-        warnings.append("GPU has enough memory, but name is not A100. Results may differ from the A100 profile.")
+    t4_ready = bool(cuda_available and gpu_memory_gb is not None and gpu_memory_gb >= 14)
+    if cuda_available and not t4_ready:
+        warnings.append("Detected GPU memory is below 14 GB. This project is configured for T4.")
+    if gpu_name and "T4" not in gpu_name and t4_ready:
+        warnings.append("GPU has enough memory, but name is not T4. Results may differ from the T4 profile.")
 
     return RuntimeReport(
         python=platform.python_version(),
@@ -69,14 +69,14 @@ def inspect_runtime(config_path: Path | None = None) -> RuntimeReport:
         cuda_available=cuda_available,
         gpu_name=gpu_name,
         gpu_memory_gb=gpu_memory_gb,
-        a100_ready=a100_ready,
+        t4_ready=t4_ready,
         warnings=warnings,
     )
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=Path, default=Path("configs/a100_10h.yaml"))
+    parser.add_argument("--config", type=Path, default=Path("configs/t4_10h.yaml"))
     parser.add_argument("--json", action="store_true")
     args = parser.parse_args()
 
@@ -91,11 +91,10 @@ def main() -> None:
     print(f"cuda_available: {report.cuda_available}")
     print(f"gpu_name: {report.gpu_name}")
     print(f"gpu_memory_gb: {report.gpu_memory_gb}")
-    print(f"a100_ready: {report.a100_ready}")
+    print(f"t4_ready: {report.t4_ready}")
     for warning in report.warnings:
         print(f"warning: {warning}")
 
 
 if __name__ == "__main__":
     main()
-

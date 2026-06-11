@@ -138,7 +138,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--tasks", required=True, type=Path)
     parser.add_argument("--output", required=True, type=Path)
-    parser.add_argument("--model", default="Qwen/Qwen2.5-Coder-3B-Instruct")
+    parser.add_argument("--model", default="deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B")
     parser.add_argument("--candidates-per-task", default=8, type=int)
     parser.add_argument("--max-tasks", type=int)
     parser.add_argument("--splits", nargs="+")

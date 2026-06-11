@@ -1,7 +1,7 @@
 # Compatibility alias.
-# This project is standardized on A100. Use configs/a100_10h.yaml as the
-# source of truth for all Colab runs.
+# This project is standardized on T4. Use configs/t4_10h.yaml as the source of
+# truth for Colab runs.
 
-alias_for: configs/a100_10h.yaml
-hardware_profile: colab_a100_40gb
+alias_for: configs/t4_10h.yaml
+hardware_profile: colab_t4_16gb
 

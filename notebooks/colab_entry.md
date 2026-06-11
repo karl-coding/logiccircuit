@@ -32,20 +32,21 @@ python -m src.evaluate \
 
 ## 4. Candidate Generation
 
-Use the base model to produce 4-8 candidates per task. Save them as:
+Use the base model to produce 4 candidates per task on T4. Save them as:
 
 ```json
 {"task_id":"task_id","rank":1,"code":"def fixed(...): ..."}
 ```
 
-A100 smoke command:
+T4 smoke command:
 
 ```bash
 python -m src.generate_candidates \
   --tasks data/tasks.jsonl \
   --output runs/base_candidates_smoke.jsonl \
-  --model Qwen/Qwen2.5-Coder-3B-Instruct \
-  --candidates-per-task 8 \
+  --model deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B \
+  --candidates-per-task 4 \
+  --splits train \
   --max-tasks 20
 ```
 
@@ -58,12 +59,16 @@ solutions and compare against a random-SFT control.
 python -m src.filter_candidates \
   --tasks data/tasks.jsonl \
   --candidates runs/base_candidates_smoke.jsonl \
-  --output runs/sft_train_smoke.jsonl
+  --output runs/sft_train_smoke.jsonl \
+  --splits train
 
 python -m src.train_qlora \
   --train runs/sft_train_smoke.jsonl \
-  --output-dir runs/qwen_coder_3b_smoke_adapter \
-  --model Qwen/Qwen2.5-Coder-3B-Instruct \
+  --output-dir runs/deepseek_r1_qwen_1p5b_smoke_adapter \
+  --model deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B \
+  --max-seq-length 1024 \
+  --lora-rank 8 \
+  --lora-alpha 16 \
   --max-steps 20
 ```
 

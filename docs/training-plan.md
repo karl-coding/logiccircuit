@@ -14,7 +14,7 @@ This is preferred because unit tests provide cheap, precise rewards.
 
 ## Model
 
-Preferred:
+Preferred on T4:
 
 ```text
 DeepSeek-R1-Distill-Qwen-1.5B
@@ -23,10 +23,11 @@ DeepSeek-R1-Distill-Qwen-1.5B
 Alternatives:
 
 ```text
-Qwen2.5-3B-Instruct
-Qwen2.5-Coder-3B
+Qwen/Qwen2.5-1.5B-Instruct
 Llama-3.2-3B
 ```
+
+Use 3B models only on larger GPUs or when runtime budget is less constrained.
 
 Use 4-bit QLoRA.
 
@@ -88,4 +89,3 @@ multi-sampling -> finds weak existing circuits
 filtered training -> strengthens correct paths
 hard negatives -> blocks shortcut circuits
 ```
-
