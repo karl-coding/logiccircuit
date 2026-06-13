@@ -22,7 +22,8 @@ the reward.
 ## Minimum-Cost Direction
 
 With only about 10 hours of Google Colab T4 time, do not pretrain a model.
-Use a 1.5B open model and QLoRA to strengthen one local capability.
+Use a 1.5B open model and QLoRA to strengthen one local capability. On T4, keep
+the first run under 2 GPU hours.
 
 Recommended models:
 
@@ -36,7 +37,7 @@ code repair + unit-test verifier
 ```
 
 This gives the clearest reward signal and the highest chance of observing a
-real local circuit improvement in 10 GPU hours.
+real local circuit improvement within a short T4 budget.
 
 ## Key Documents
 
@@ -83,8 +84,10 @@ python -m src.generate_candidates \
   --tasks data/tasks.jsonl \
   --output runs/base_candidates.jsonl \
   --model deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B \
-  --candidates-per-task 4 \
-  --splits train
+  --candidates-per-task 2 \
+  --splits train \
+  --max-tasks 32 \
+  --max-new-tokens 256
 ```
 
 Train a QLoRA adapter:
@@ -96,7 +99,8 @@ python -m src.train_qlora \
   --model deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B \
   --max-seq-length 1024 \
   --lora-rank 8 \
-  --lora-alpha 16
+  --lora-alpha 16 \
+  --max-steps 35
 ```
 
 Evaluate the trained adapter by generating candidates and reusing the verifier:
@@ -107,7 +111,8 @@ python -m src.generate_with_adapter \
   --output runs/adapter_candidates.jsonl \
   --base-model deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B \
   --adapter-dir runs/deepseek_r1_qwen_1p5b_adapter \
-  --candidates-per-task 4
+  --candidates-per-task 2 \
+  --max-new-tokens 256
 ```
 
 The scripts use standard Python plus the lightweight packages in

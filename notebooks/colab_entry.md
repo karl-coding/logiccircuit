@@ -32,7 +32,7 @@ python -m src.evaluate \
 
 ## 4. Candidate Generation
 
-Use the base model to produce 4 candidates per task on T4. Save them as:
+Use the base model to produce 2 candidates per task on T4. Save them as:
 
 ```json
 {"task_id":"task_id","rank":1,"code":"def fixed(...): ..."}
@@ -45,9 +45,10 @@ python -m src.generate_candidates \
   --tasks data/tasks.jsonl \
   --output runs/base_candidates_smoke.jsonl \
   --model deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B \
-  --candidates-per-task 4 \
+  --candidates-per-task 2 \
   --splits train \
-  --max-tasks 20
+  --max-tasks 32 \
+  --max-new-tokens 256
 ```
 
 ## 5. Verifier Filtering
@@ -69,7 +70,7 @@ python -m src.train_qlora \
   --max-seq-length 1024 \
   --lora-rank 8 \
   --lora-alpha 16 \
-  --max-steps 20
+  --max-steps 35
 ```
 
 ## 6. Final Validation

@@ -1,9 +1,9 @@
-# T4 10-Hour Runbook
+# T4 Budget Runbook
 
 ## Goal
 
 Run a low-cost code-repair circuit-strengthening experiment on a Google Colab
-T4 runtime and verify whether the improvement is real.
+T4 runtime and get a useful signal before GPU time expires.
 
 ## Fixed Hardware Assumption
 
@@ -24,17 +24,18 @@ Use:
 configs/t4_10h.yaml
 ```
 
-Default limits:
+Default budget limits:
 
 ```text
 model: deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B
 fallback: Qwen/Qwen2.5-1.5B-Instruct
 sequence length: 1024
 LoRA rank: 8
-candidates per task: 4
-training rows: 300-800
-expected runtime: 4-8 GPU hours
-hard stop: 10 GPU hours
+candidates per task: 2
+training rows: 40-120
+training steps: 30-40
+expected runtime: 45-120 minutes
+hard stop: 2.5 GPU hours
 ```
 
 ## First Commands
@@ -62,10 +63,10 @@ drive.mount('/content/drive')
 Create tasks:
 
 ```bash
-python -m src.make_tasks --output data/tasks.jsonl --repeat 3
+python -m src.make_tasks --output data/tasks.jsonl --repeat 2
 ```
 
-## Smoke Loop
+## Budget Loop
 
 Generate train candidates:
 
@@ -74,9 +75,10 @@ python -m src.generate_candidates \
   --tasks data/tasks.jsonl \
   --output runs/base_candidates_smoke.jsonl \
   --model deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B \
-  --candidates-per-task 4 \
+  --candidates-per-task 2 \
   --splits train \
-  --max-tasks 20
+  --max-tasks 32 \
+  --max-new-tokens 256
 ```
 
 Evaluate and filter:
@@ -106,7 +108,7 @@ python -m src.train_qlora \
   --max-seq-length 1024 \
   --lora-rank 8 \
   --lora-alpha 16 \
-  --max-steps 20
+  --max-steps 35
 ```
 
 Generate adapter candidates and compare:
@@ -117,9 +119,10 @@ python -m src.generate_with_adapter \
   --output runs/adapter_candidates_smoke.jsonl \
   --base-model deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B \
   --adapter-dir runs/deepseek_r1_qwen_1p5b_smoke_adapter \
-  --candidates-per-task 4 \
+  --candidates-per-task 2 \
   --splits train \
-  --max-tasks 20
+  --max-tasks 32 \
+  --max-new-tokens 256
 
 python -m src.evaluate \
   --tasks data/tasks.jsonl \
@@ -141,3 +144,59 @@ python -m src.backup_to_drive \
   --drive-root /content/drive/MyDrive/logiccircuit
 ```
 
+## Held-Out Mini Check
+
+Run this before attempting a larger experiment:
+
+```bash
+python -m src.generate_candidates \
+  --tasks data/tasks.jsonl \
+  --output runs/base_candidates_heldout_t4_mini.jsonl \
+  --model deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B \
+  --candidates-per-task 2 \
+  --splits test-similar test-hard test-transfer \
+  --max-tasks 48 \
+  --max-new-tokens 256
+
+python -m src.generate_with_adapter \
+  --tasks data/tasks.jsonl \
+  --output runs/adapter_candidates_heldout_t4_mini.jsonl \
+  --base-model deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B \
+  --adapter-dir runs/deepseek_r1_qwen_1p5b_smoke_adapter \
+  --candidates-per-task 2 \
+  --splits test-similar test-hard test-transfer \
+  --max-tasks 48 \
+  --max-new-tokens 256
+
+python -m src.evaluate \
+  --tasks data/tasks.jsonl \
+  --candidates runs/base_candidates_heldout_t4_mini.jsonl \
+  --output runs/base_eval_heldout_t4_mini.jsonl \
+  --splits test-similar test-hard test-transfer \
+  --only-with-candidates \
+  --k 1 2
+
+python -m src.evaluate \
+  --tasks data/tasks.jsonl \
+  --candidates runs/adapter_candidates_heldout_t4_mini.jsonl \
+  --output runs/adapter_eval_heldout_t4_mini.jsonl \
+  --splits test-similar test-hard test-transfer \
+  --only-with-candidates \
+  --k 1 2
+
+python -m src.compare_eval \
+  --baseline runs/base_eval_heldout_t4_mini.jsonl \
+  --adapter runs/adapter_eval_heldout_t4_mini.jsonl
+```
+
+## Stop Rules
+
+Stop and back up when any one of these is true:
+
+```text
+loss is below 0.05 for two logs
+training reaches 35 steps
+candidate generation exceeds 45 minutes
+filtered SFT rows are below 10
+held-out pass@1 does not improve on the mini check
+```
