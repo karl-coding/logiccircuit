@@ -236,6 +236,15 @@ python -m src.analyze_eval \
   --k 1 2
 ```
 
+List exact improved, unresolved, and regressed tasks:
+
+```bash
+python -m src.list_failures \
+  --baseline runs/base_eval_heldout_t4_mini.jsonl \
+  --adapter runs/adapter_eval_heldout_t4_mini.jsonl \
+  --k 1
+```
+
 ## Stop Rules
 
 Stop and back up when any one of these is true:
