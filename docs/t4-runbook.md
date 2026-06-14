@@ -256,3 +256,34 @@ candidate generation exceeds 45 minutes
 filtered SFT rows are below 10
 held-out pass@1 does not improve on the mini check
 ```
+
+## Hard-Patch Loop
+
+After `src.list_failures` identifies specific weak bug types, generate a small
+patch set for those mechanisms:
+
+```bash
+python -m src.make_hard_sft \
+  --output runs/hard_patch_sft.jsonl \
+  --repeat 2
+
+python -m src.merge_jsonl \
+  --inputs runs/sft_train_smoke_qwen.jsonl runs/hard_patch_sft.jsonl \
+  --output runs/sft_train_qwen_with_patch.jsonl
+```
+
+Then run a shorter patch adapter:
+
+```bash
+python -m src.train_qlora \
+  --train runs/sft_train_qwen_with_patch.jsonl \
+  --output-dir runs/qwen_coder_1p5b_t4_patch_adapter \
+  --model Qwen/Qwen2.5-Coder-1.5B-Instruct \
+  --max-seq-length 1024 \
+  --lora-rank 8 \
+  --lora-alpha 16 \
+  --max-steps 20 \
+  --no-4bit
+```
+
+Evaluate against the same adversarial held-out files before adopting the patch.
