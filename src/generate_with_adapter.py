@@ -15,17 +15,20 @@ from .task_schema import CodeRepairTask
 def load_adapter_model(
     base_model: str,
     adapter_dir: Path,
+    load_in_4bit: bool,
 ) -> tuple[AutoTokenizer, PeftModel]:
     tokenizer = AutoTokenizer.from_pretrained(adapter_dir, trust_remote_code=True)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-    quantization_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_compute_dtype=torch.bfloat16,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_use_double_quant=True,
-    )
+    quantization_config = None
+    if load_in_4bit:
+        quantization_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_compute_dtype=torch.bfloat16,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_use_double_quant=True,
+        )
     model = AutoModelForCausalLM.from_pretrained(
         base_model,
         device_map="auto",
@@ -49,6 +52,7 @@ def generate_with_adapter(
     max_new_tokens: int,
     temperature: float,
     top_p: float,
+    load_in_4bit: bool,
 ) -> int:
     if not tasks_path.exists():
         raise FileNotFoundError(
@@ -68,7 +72,7 @@ def generate_with_adapter(
     if not tasks:
         raise ValueError(f"no tasks selected from {tasks_path}")
 
-    tokenizer, model = load_adapter_model(base_model, adapter_dir)
+    tokenizer, model = load_adapter_model(base_model, adapter_dir, load_in_4bit)
 
     rows: list[dict[str, object]] = []
     for index, task in enumerate(tasks, start=1):
@@ -118,6 +122,7 @@ def main() -> None:
     parser.add_argument("--max-new-tokens", default=512, type=int)
     parser.add_argument("--temperature", default=0.7, type=float)
     parser.add_argument("--top-p", default=0.95, type=float)
+    parser.add_argument("--no-4bit", action="store_true")
     args = parser.parse_args()
 
     count = generate_with_adapter(
@@ -131,6 +136,7 @@ def main() -> None:
         max_new_tokens=args.max_new_tokens,
         temperature=args.temperature,
         top_p=args.top_p,
+        load_in_4bit=not args.no_4bit,
     )
     print(f"wrote {count} adapter candidates to {args.output}")
 
