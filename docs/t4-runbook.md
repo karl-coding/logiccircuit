@@ -76,6 +76,15 @@ python -m src.generate_candidates \
   --no-4bit
 ```
 
+If PEFT fails with an incompatible `torchao` version, remove the old package:
+
+```bash
+pip uninstall -y torchao
+```
+
+Then rerun the training command. This is usually faster and safer than upgrading
+torchao inside a short Colab session.
+
 Mount Google Drive before long runs:
 
 ```python
