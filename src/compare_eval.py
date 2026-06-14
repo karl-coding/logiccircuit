@@ -15,19 +15,26 @@ def summarize(eval_path: Path) -> dict[str, dict[str, float]]:
         )
 
     rows = read_jsonl(eval_path)
-    split_task_results: dict[str, dict[str, list[bool]]] = defaultdict(lambda: defaultdict(list))
+    split_task_results: dict[str, dict[str, list[tuple[int, bool]]]] = defaultdict(lambda: defaultdict(list))
 
     for row in rows:
         split = str(row["split"])
         task_id = str(row["task_id"])
-        split_task_results[split][task_id].append(bool(row["passed_all"]))
+        split_task_results[split][task_id].append((int(row["rank"]), bool(row["passed_all"])))
 
     summary: dict[str, dict[str, float]] = {}
     for split, task_results in split_task_results.items():
         total = len(task_results)
         summary[split] = {"total": float(total)}
-        for k in (1, 3, 8):
-            passed = sum(any(results[:k]) for results in task_results.values())
+        max_rank = max(rank for results in task_results.values() for rank, _ in results)
+        candidate_ks = sorted({1, 2, 3, 8, max_rank})
+        for k in candidate_ks:
+            if k > max_rank:
+                continue
+            passed = 0
+            for results in task_results.values():
+                ranked = [passed_all for _, passed_all in sorted(results, key=lambda item: item[0])]
+                passed += int(any(ranked[:k]))
             summary[split][f"pass@{k}"] = passed / total if total else 0.0
     return summary
 
