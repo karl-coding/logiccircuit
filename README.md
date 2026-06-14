@@ -143,6 +143,7 @@ Minimum acceptance:
 ```text
 test-similar pass@1 improvement >= 10%
 test-hard pass@1 improvement >= 8%
+test-adversarial pass@1 does not regress
 variable-renaming degradation <= 5%
 hidden tests improve with public tests
 verifier-guided QLoRA beats random-SFT control

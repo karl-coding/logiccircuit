@@ -192,7 +192,7 @@ python -m src.generate_candidates \
   --output runs/base_candidates_heldout_t4_mini.jsonl \
   --model deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B \
   --candidates-per-task 2 \
-  --splits test-similar test-hard test-transfer \
+  --splits test-similar test-hard test-transfer test-adversarial \
   --max-tasks 48 \
   --max-new-tokens 256
 
@@ -202,7 +202,7 @@ python -m src.generate_with_adapter \
   --base-model deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B \
   --adapter-dir runs/deepseek_r1_qwen_1p5b_smoke_adapter \
   --candidates-per-task 2 \
-  --splits test-similar test-hard test-transfer \
+  --splits test-similar test-hard test-transfer test-adversarial \
   --max-tasks 48 \
   --max-new-tokens 256
 
@@ -210,7 +210,7 @@ python -m src.evaluate \
   --tasks data/tasks.jsonl \
   --candidates runs/base_candidates_heldout_t4_mini.jsonl \
   --output runs/base_eval_heldout_t4_mini.jsonl \
-  --splits test-similar test-hard test-transfer \
+  --splits test-similar test-hard test-transfer test-adversarial \
   --only-with-candidates \
   --k 1 2
 
@@ -218,7 +218,7 @@ python -m src.evaluate \
   --tasks data/tasks.jsonl \
   --candidates runs/adapter_candidates_heldout_t4_mini.jsonl \
   --output runs/adapter_eval_heldout_t4_mini.jsonl \
-  --splits test-similar test-hard test-transfer \
+  --splits test-similar test-hard test-transfer test-adversarial \
   --only-with-candidates \
   --k 1 2
 

@@ -114,7 +114,97 @@ def build_tasks() -> list[dict[str, object]]:
                 ),
             ]
         )
+    rows.extend(build_adversarial_tasks())
     return rows
+
+
+def build_adversarial_tasks() -> list[dict[str, object]]:
+    split = "test-adversarial"
+    return [
+        task(
+            "adversarial_none_zero",
+            split,
+            "Fix the function so it returns the default only when the value is None. Return only code.",
+            "def replace_none(value, default):\n    if not value:\n        return default\n    return value",
+            ["assert replace_none(None, 5) == 5", "assert replace_none(7, 5) == 7"],
+            ["assert replace_none(0, 5) == 0", "assert replace_none('', 'x') == ''"],
+            "none_vs_falsey",
+        ),
+        task(
+            "adversarial_index_or_missing",
+            split,
+            "Fix the function so it returns the index of target or -1 if missing. Return only code.",
+            "def find_index(items, target):\n    if target in items:\n        return target\n    return -1",
+            ["assert find_index(['a', 'b'], 'b') == 1", "assert find_index([3, 4], 2) == -1"],
+            ["assert find_index([0, 1, 0], 0) == 0", "assert find_index(['x'], 'x') == 0"],
+            "value_vs_index",
+        ),
+        task(
+            "adversarial_no_mutation",
+            split,
+            "Fix the function so it returns a sorted copy without mutating the input list. Return only code.",
+            "def sorted_copy(items):\n    items.sort()\n    return items",
+            [
+                "xs = [3, 1, 2]\nys = sorted_copy(xs)\nassert ys == [1, 2, 3]",
+                "xs = [3, 1, 2]\nys = sorted_copy(xs)\nassert xs == [3, 1, 2]",
+            ],
+            [
+                "xs = []\nys = sorted_copy(xs)\nassert ys == [] and xs == []",
+                "xs = ['b', 'a']\nys = sorted_copy(xs)\nassert ys == ['a', 'b'] and xs == ['b', 'a']",
+            ],
+            "mutation_trap",
+        ),
+        task(
+            "adversarial_stable_sort_key",
+            split,
+            "Fix the function so it sorts pairs by the second value while preserving order for ties. Return only code.",
+            "def sort_by_score(pairs):\n    return sorted(pairs)",
+            [
+                "assert sort_by_score([('a', 2), ('b', 1)]) == [('b', 1), ('a', 2)]",
+                "assert sort_by_score([('a', 1), ('b', 1)]) == [('a', 1), ('b', 1)]",
+            ],
+            [
+                "assert sort_by_score([('z', 0), ('a', 0), ('m', -1)]) == [('m', -1), ('z', 0), ('a', 0)]",
+            ],
+            "stable_sort_constraint",
+        ),
+        task(
+            "adversarial_clamp_reversed_bounds",
+            split,
+            "Fix the function so it clamps x even when bounds are provided in either order. Return only code.",
+            "def clamp_any_order(x, a, b):\n    if x < a:\n        return a\n    if x > b:\n        return b\n    return x",
+            ["assert clamp_any_order(5, 0, 10) == 5", "assert clamp_any_order(-2, 0, 10) == 0"],
+            ["assert clamp_any_order(12, 10, 0) == 10", "assert clamp_any_order(-2, 10, 0) == 0"],
+            "reversed_bounds",
+        ),
+        task(
+            "adversarial_shadow_nested",
+            split,
+            "Fix the function so it counts items equal to target across nested lists. Return only code.",
+            "def count_nested(groups, target):\n    count = 0\n    for target in groups:\n        for item in target:\n            if item == target:\n                count += 1\n    return count",
+            ["assert count_nested([[1, 2], [1]], 1) == 2", "assert count_nested([[3], []], 2) == 0"],
+            ["assert count_nested([['a'], ['a', 'b']], 'a') == 2", "assert count_nested([], 1) == 0"],
+            "nested_variable_shadowing",
+        ),
+        task(
+            "adversarial_digit_sum_string",
+            split,
+            "Fix the function so it sums digit characters in a string and ignores non-digits. Return only code.",
+            "def sum_digits_text(text):\n    return sum(int(ch) for ch in text)",
+            ["assert sum_digits_text('a1b2') == 3", "assert sum_digits_text('') == 0"],
+            ["assert sum_digits_text('-12.3') == 6", "assert sum_digits_text('no digits') == 0"],
+            "type_role_disambiguation",
+        ),
+        task(
+            "adversarial_running_difference",
+            split,
+            "Fix the function so it returns differences between each item and the previous item. Return only code.",
+            "def deltas(nums):\n    out = []\n    prev = 0\n    for n in nums:\n        out.append(n - prev)\n    return out",
+            ["assert deltas([3, 5, 9]) == [3, 2, 4]"],
+            ["assert deltas([]) == []", "assert deltas([-1, -3, 2]) == [-1, -2, 5]"],
+            "state_update_previous_value",
+        ),
+    ]
 
 
 def main() -> None:
@@ -137,4 +227,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
