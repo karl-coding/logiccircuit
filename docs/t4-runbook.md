@@ -227,6 +227,15 @@ python -m src.compare_eval \
   --adapter runs/adapter_eval_heldout_t4_mini.jsonl
 ```
 
+Analyze which bug types improved:
+
+```bash
+python -m src.analyze_eval \
+  --baseline runs/base_eval_heldout_t4_mini.jsonl \
+  --adapter runs/adapter_eval_heldout_t4_mini.jsonl \
+  --k 1 2
+```
+
 ## Stop Rules
 
 Stop and back up when any one of these is true:
