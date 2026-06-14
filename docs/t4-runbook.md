@@ -53,6 +53,29 @@ pip install -r requirements.txt
 pip install -U "bitsandbytes>=0.46.1"
 ```
 
+Verify 4-bit support before running generation:
+
+```bash
+python - <<'PY'
+import bitsandbytes as bnb
+print(bnb.__version__)
+PY
+```
+
+If `bitsandbytes` keeps failing on T4, use `--no-4bit` for the 1.5B model:
+
+```bash
+python -m src.generate_candidates \
+  --tasks data/tasks.jsonl \
+  --output runs/base_candidates_smoke.jsonl \
+  --model deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B \
+  --candidates-per-task 2 \
+  --splits train \
+  --max-tasks 32 \
+  --max-new-tokens 256 \
+  --no-4bit
+```
+
 Mount Google Drive before long runs:
 
 ```python
@@ -109,6 +132,12 @@ python -m src.train_qlora \
   --lora-rank 8 \
   --lora-alpha 16 \
   --max-steps 35
+```
+
+If 4-bit training fails for dependency reasons, retry the same command with:
+
+```bash
+  --no-4bit
 ```
 
 Generate adapter candidates and compare:

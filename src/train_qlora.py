@@ -97,6 +97,7 @@ def train_qlora(
     train_path: Path,
     output_dir: Path,
     model_name: str,
+    load_in_4bit: bool,
     max_seq_length: int,
     learning_rate: float,
     epochs: float,
@@ -117,12 +118,14 @@ def train_qlora(
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
-    quantization_config = BitsAndBytesConfig(
-        load_in_4bit=True,
-        bnb_4bit_compute_dtype=torch.bfloat16,
-        bnb_4bit_quant_type="nf4",
-        bnb_4bit_use_double_quant=True,
-    )
+    quantization_config = None
+    if load_in_4bit:
+        quantization_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_compute_dtype=torch.bfloat16,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_use_double_quant=True,
+        )
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
         device_map="auto",
@@ -188,6 +191,7 @@ def main() -> None:
     parser.add_argument("--train", required=True, type=Path)
     parser.add_argument("--output-dir", required=True, type=Path)
     parser.add_argument("--model", default="deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B")
+    parser.add_argument("--no-4bit", action="store_true")
     parser.add_argument("--max-seq-length", default=1024, type=int)
     parser.add_argument("--learning-rate", default=2e-4, type=float)
     parser.add_argument("--epochs", default=2.0, type=float)
@@ -203,6 +207,7 @@ def main() -> None:
         train_path=args.train,
         output_dir=args.output_dir,
         model_name=args.model,
+        load_in_4bit=not args.no_4bit,
         max_seq_length=args.max_seq_length,
         learning_rate=args.learning_rate,
         epochs=args.epochs,
