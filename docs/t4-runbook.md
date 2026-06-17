@@ -347,3 +347,32 @@ python -m src.train_qlora \
 
 Adopt this only if it improves `state_update_previous_value` on held-out
 adversarial tasks without reducing `test-similar` or `test-transfer` pass@1.
+
+## Success Curriculum
+
+Use this after the previous patch attempts have shown interference between
+state updates and protection tasks:
+
+```bash
+python -m src.make_success_sft \
+  --output runs/success_curriculum_sft.jsonl \
+  --repeat 2
+
+python -m src.merge_jsonl \
+  --inputs runs/sft_train_smoke_qwen.jsonl runs/success_curriculum_sft.jsonl \
+  --output runs/sft_train_qwen_success_curriculum.jsonl
+
+python -m src.train_qlora \
+  --train runs/sft_train_qwen_success_curriculum.jsonl \
+  --output-dir runs/qwen_coder_1p5b_t4_success_curriculum_adapter \
+  --model Qwen/Qwen2.5-Coder-1.5B-Instruct \
+  --max-seq-length 1024 \
+  --lora-rank 8 \
+  --lora-alpha 16 \
+  --max-steps 14 \
+  --no-4bit
+```
+
+Adopt only if it beats `runs/qwen_coder_1p5b_t4_patch_adapter` on
+`state_update_previous_value` without losing `test-similar`, `test-transfer`,
+or `test-adversarial` pass@1.

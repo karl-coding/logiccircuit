@@ -163,8 +163,8 @@ anti-shortcut cases.
 
 ## Next Step
 
-Do not add more generic SFT rows. The next useful experiment is a redesigned
-state-machine task family with held-out tasks that vary:
+Do not add more generic SFT rows. The next useful experiment is a contrastive
+state-update curriculum with regression protection. It should vary:
 
 ```text
 previous value update timing
@@ -174,10 +174,20 @@ tuple/list state variables
 multi-variable state updates
 ```
 
+The protection set should preserve:
+
+```text
+reversed_bounds
+stable_sort_constraint
+none_vs_falsey
+boundary_negative_number
+boundary_zero
+mutation_trap
+```
+
 Acceptance condition for the next run:
 
 ```text
 state_update_previous_value pass@1 improves without lowering
 test-similar or test-transfer pass@1 below the hard-patch adapter.
 ```
-
