@@ -107,13 +107,54 @@ def build_rows() -> list[dict[str, object]]:
     ]
 
 
+def build_remaining_rows() -> list[dict[str, object]]:
+    return [
+        row(
+            "micro_patch_reversed_bounds_001",
+            "reversed_bounds",
+            "def clamp_any_order(x, a, b):\n    if x < a:\n        return a\n    if x > b:\n        return b\n    return x",
+            ["assert clamp_any_order(12, 10, 0) == 10", "assert clamp_any_order(-2, 10, 0) == 0"],
+            "def clamp_any_order(x, a, b):\n    lo = min(a, b)\n    hi = max(a, b)\n    if x < lo:\n        return lo\n    if x > hi:\n        return hi\n    return x",
+        ),
+        row(
+            "micro_patch_reversed_bounds_002",
+            "reversed_bounds",
+            "def between_bounds(value, left, right):\n    if value < left:\n        return left\n    if value > right:\n        return right\n    return value",
+            ["assert between_bounds(5, 10, 0) == 5", "assert between_bounds(11, 10, 0) == 10"],
+            "def between_bounds(value, left, right):\n    low = min(left, right)\n    high = max(left, right)\n    if value < low:\n        return low\n    if value > high:\n        return high\n    return value",
+        ),
+        row(
+            "micro_patch_reversed_bounds_003",
+            "reversed_bounds",
+            "def limit_score(score, first, second):\n    lower = first\n    upper = second\n    return max(lower, min(score, upper))",
+            ["assert limit_score(15, 10, 0) == 10", "assert limit_score(-5, 10, 0) == 0"],
+            "def limit_score(score, first, second):\n    lower = min(first, second)\n    upper = max(first, second)\n    return max(lower, min(score, upper))",
+        ),
+        row(
+            "micro_patch_previous_state_001",
+            "state_update_previous_value",
+            "def deltas(nums):\n    out = []\n    prev = 0\n    for n in nums:\n        out.append(n - prev)\n    return out",
+            ["assert deltas([3, 5, 9]) == [3, 2, 4]", "assert deltas([-1, -3, 2]) == [-1, -2, 5]"],
+            "def deltas(nums):\n    out = []\n    prev = 0\n    for n in nums:\n        out.append(n - prev)\n        prev = n\n    return out",
+        ),
+        row(
+            "micro_patch_previous_state_002",
+            "state_update_previous_value",
+            "def gaps(values):\n    gaps_out = []\n    previous = 0\n    for value in values:\n        gaps_out.append(value - previous)\n    return gaps_out",
+            ["assert gaps([2, 2, 5]) == [2, 0, 3]", "assert gaps([0, -2]) == [0, -2]"],
+            "def gaps(values):\n    gaps_out = []\n    previous = 0\n    for value in values:\n        gaps_out.append(value - previous)\n        previous = value\n    return gaps_out",
+        ),
+    ]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", default=Path("runs/hard_patch_sft.jsonl"), type=Path)
     parser.add_argument("--repeat", default=2, type=int)
+    parser.add_argument("--focus", choices=["all", "remaining"], default="all")
     args = parser.parse_args()
 
-    base_rows = build_rows()
+    base_rows = build_remaining_rows() if args.focus == "remaining" else build_rows()
     rows: list[dict[str, object]] = []
     for repeat_index in range(args.repeat):
         for item in base_rows:
@@ -127,4 +168,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

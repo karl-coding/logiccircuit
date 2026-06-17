@@ -287,3 +287,30 @@ python -m src.train_qlora \
 ```
 
 Evaluate against the same adversarial held-out files before adopting the patch.
+
+For a narrower second patch after the first patch run, focus only on the
+remaining weak mechanisms:
+
+```bash
+python -m src.make_hard_sft \
+  --output runs/remaining_patch_sft.jsonl \
+  --focus remaining \
+  --repeat 2
+
+python -m src.merge_jsonl \
+  --inputs runs/sft_train_smoke_qwen.jsonl runs/remaining_patch_sft.jsonl \
+  --output runs/sft_train_qwen_remaining_patch.jsonl
+
+python -m src.train_qlora \
+  --train runs/sft_train_qwen_remaining_patch.jsonl \
+  --output-dir runs/qwen_coder_1p5b_t4_remaining_patch_adapter \
+  --model Qwen/Qwen2.5-Coder-1.5B-Instruct \
+  --max-seq-length 1024 \
+  --lora-rank 8 \
+  --lora-alpha 16 \
+  --max-steps 12 \
+  --no-4bit
+```
+
+This second patch should only be adopted if it fixes `reversed_bounds` without
+regressing `test-transfer` or `test-adversarial` pass@1.
