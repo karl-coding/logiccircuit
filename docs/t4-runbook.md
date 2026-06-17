@@ -314,3 +314,33 @@ python -m src.train_qlora \
 
 This second patch should only be adopted if it fixes `reversed_bounds` without
 regressing `test-transfer` or `test-adversarial` pass@1.
+
+## State-Update Curriculum
+
+If `state_update_previous_value` remains unresolved, stop adding near-duplicate
+patch rows and train a tiny curriculum that varies the surface task while
+preserving the same mechanism: compute from the previous value, then update the
+previous value.
+
+```bash
+python -m src.make_state_curriculum \
+  --output runs/state_curriculum_sft.jsonl \
+  --repeat 2
+
+python -m src.merge_jsonl \
+  --inputs runs/sft_train_smoke_qwen.jsonl runs/state_curriculum_sft.jsonl \
+  --output runs/sft_train_qwen_state_curriculum.jsonl
+
+python -m src.train_qlora \
+  --train runs/sft_train_qwen_state_curriculum.jsonl \
+  --output-dir runs/qwen_coder_1p5b_t4_state_curriculum_adapter \
+  --model Qwen/Qwen2.5-Coder-1.5B-Instruct \
+  --max-seq-length 1024 \
+  --lora-rank 8 \
+  --lora-alpha 16 \
+  --max-steps 16 \
+  --no-4bit
+```
+
+Adopt this only if it improves `state_update_previous_value` on held-out
+adversarial tasks without reducing `test-similar` or `test-transfer` pass@1.
