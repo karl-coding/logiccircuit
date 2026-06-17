@@ -46,6 +46,7 @@ real local circuit improvement within a short T4 budget.
 - `docs/validation-plan.md`: How to prove the improvement is real.
 - `docs/cost-model.md`: Cost logic and why small-model QLoRA is the right path.
 - `docs/t4-runbook.md`: T4 runtime and validation plan.
+- `docs/t4-experiment-report.md`: Current T4 results, best adapter, and failure modes.
 
 ## Runnable Scaffold
 

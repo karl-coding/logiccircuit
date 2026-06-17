@@ -1,5 +1,8 @@
 # T4 Budget Runbook
 
+Current results and checkpoint decisions are summarized in
+`docs/t4-experiment-report.md`.
+
 ## Goal
 
 Run a low-cost code-repair circuit-strengthening experiment on a Google Colab
