@@ -405,3 +405,28 @@ python -m src.train_qlora \
 Keep this adapter as a challenger only. Adopt it if it improves unresolved
 `state_update_previous_value` and `reversed_bounds` without lowering pass@1
 against the current best hard-patch adapter.
+
+## Verifier Rerank
+
+When pass@2 is higher than pass@1, stop training and rerank candidates. This
+uses CPU-only public tests, so it is cheap after candidate generation.
+
+```bash
+python -m src.rerank_candidates \
+  --tasks data/tasks.jsonl \
+  --candidates runs/adapter_candidates_adversarial_t4_success_curriculum.jsonl \
+  --output runs/adapter_candidates_adversarial_t4_success_reranked.jsonl \
+  --splits test-similar test-hard test-transfer test-adversarial \
+  --mode public
+
+python -m src.evaluate \
+  --tasks data/tasks.jsonl \
+  --candidates runs/adapter_candidates_adversarial_t4_success_reranked.jsonl \
+  --output runs/adapter_eval_adversarial_t4_success_reranked.jsonl \
+  --splits test-similar test-hard test-transfer test-adversarial \
+  --only-with-candidates \
+  --k 1 2
+```
+
+Use `--mode oracle` only to estimate the upper bound from existing candidates.
+Do not report oracle numbers as a deployable result.
