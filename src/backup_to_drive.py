@@ -8,6 +8,7 @@ from pathlib import Path
 DEFAULT_PATTERNS = [
     "data/*.jsonl",
     "runs/*.jsonl",
+    "runs/*.txt",
     "runs/*adapter*",
     "configs/*.yaml",
 ]
@@ -76,4 +77,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
