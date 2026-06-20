@@ -375,3 +375,33 @@ python -m src.train_qlora \
 Adopt only if it beats `runs/qwen_coder_1p5b_t4_patch_adapter` on
 `state_update_previous_value` without losing `test-similar`, `test-transfer`,
 or `test-adversarial` pass@1.
+
+## Final Patch Curriculum
+
+Use this only after `success_curriculum` when remaining failures are narrow:
+`running_difference`, reversed clamp bounds, negative digit sums, and
+running-total regressions.
+
+```bash
+python -m src.make_final_patch_sft \
+  --output runs/final_patch_sft.jsonl \
+  --repeat 2
+
+python -m src.merge_jsonl \
+  --inputs runs/sft_train_smoke_qwen.jsonl runs/final_patch_sft.jsonl \
+  --output runs/sft_train_qwen_final_patch.jsonl
+
+python -m src.train_qlora \
+  --train runs/sft_train_qwen_final_patch.jsonl \
+  --output-dir runs/qwen_coder_1p5b_t4_final_patch_adapter \
+  --model Qwen/Qwen2.5-Coder-1.5B-Instruct \
+  --max-seq-length 1024 \
+  --lora-rank 8 \
+  --lora-alpha 16 \
+  --max-steps 10 \
+  --no-4bit
+```
+
+Keep this adapter as a challenger only. Adopt it if it improves unresolved
+`state_update_previous_value` and `reversed_bounds` without lowering pass@1
+against the current best hard-patch adapter.
