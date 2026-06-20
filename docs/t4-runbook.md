@@ -430,3 +430,44 @@ python -m src.evaluate \
 
 Use `--mode oracle` only to estimate the upper bound from existing candidates.
 Do not report oracle numbers as a deployable result.
+
+## Failure-Only Extra Sampling
+
+If oracle rerank shows only a few tasks lack correct candidates, select just
+those task ids and sample more candidates.
+
+```bash
+python -m src.select_tasks \
+  --tasks data/tasks.jsonl \
+  --output runs/failure_tasks.jsonl \
+  --task-ids \
+    adversarial_clamp_reversed_bounds_r01 \
+    adversarial_running_difference_r00 \
+    adversarial_running_difference_r01 \
+    digit_sum_005_r00
+
+python -m src.generate_with_adapter \
+  --tasks runs/failure_tasks.jsonl \
+  --output runs/extra_candidates_success_failures.jsonl \
+  --base-model Qwen/Qwen2.5-Coder-1.5B-Instruct \
+  --adapter-dir runs/qwen_coder_1p5b_t4_success_curriculum_adapter \
+  --candidates-per-task 12 \
+  --max-new-tokens 384 \
+  --no-4bit
+
+python -m src.rerank_candidates \
+  --tasks runs/failure_tasks.jsonl \
+  --candidates runs/extra_candidates_success_failures.jsonl \
+  --output runs/extra_candidates_success_failures_oracle.jsonl \
+  --mode oracle
+```
+
+If the extra oracle covers the failures, replace those task candidates in the
+main file:
+
+```bash
+python -m src.replace_candidates \
+  --base runs/adapter_candidates_adversarial_t4_success_curriculum.jsonl \
+  --patch runs/extra_candidates_success_failures_oracle.jsonl \
+  --output runs/adapter_candidates_adversarial_t4_success_extra_oracle.jsonl
+```
