@@ -471,3 +471,14 @@ python -m src.replace_candidates \
   --patch runs/extra_candidates_success_failures_oracle.jsonl \
   --output runs/adapter_candidates_adversarial_t4_success_extra_oracle.jsonl
 ```
+
+For a fresh validation task file, do not compare against an eval file from a
+different task set. Extract failures directly from the new eval:
+
+```bash
+python -m src.select_failed_tasks \
+  --tasks data/tasks_r3.jsonl \
+  --eval runs/final_eval_r3.jsonl \
+  --output runs/final_failed_tasks_r3.jsonl \
+  --k 1
+```
