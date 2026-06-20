@@ -4,16 +4,12 @@ import argparse
 from collections import defaultdict
 from pathlib import Path
 
+from .eval_utils import ensure_eval_file
 from .io_utils import read_jsonl
 
 
-def summarize(eval_path: Path) -> dict[str, dict[str, float]]:
-    if not eval_path.exists():
-        raise FileNotFoundError(
-            f"evaluation file not found: {eval_path}. "
-            "Run src.evaluate for the matching baseline or adapter candidates first."
-        )
-
+def summarize(eval_path: Path, tasks_path: Path, splits: set[str] | None) -> dict[str, dict[str, float]]:
+    ensure_eval_file(eval_path, tasks_path, splits, ks=[1, 2, 3, 8])
     rows = read_jsonl(eval_path)
     split_task_results: dict[str, dict[str, list[tuple[int, bool]]]] = defaultdict(lambda: defaultdict(list))
 
@@ -43,10 +39,13 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--baseline", required=True, type=Path)
     parser.add_argument("--adapter", required=True, type=Path)
+    parser.add_argument("--tasks", default=Path("data/tasks.jsonl"), type=Path)
+    parser.add_argument("--splits", nargs="+")
     args = parser.parse_args()
 
-    baseline = summarize(args.baseline)
-    adapter = summarize(args.adapter)
+    splits_filter = set(args.splits) if args.splits else None
+    baseline = summarize(args.baseline, args.tasks, splits_filter)
+    adapter = summarize(args.adapter, args.tasks, splits_filter)
     splits = sorted(set(baseline) | set(adapter))
 
     print("split,total,metric,baseline,adapter,delta")
