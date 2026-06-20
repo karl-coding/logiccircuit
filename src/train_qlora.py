@@ -144,6 +144,7 @@ def train_qlora(
     lora_alpha: int,
     lora_dropout: float,
     max_steps: int,
+    optimizer: str,
 ) -> None:
     if not train_path.exists():
         raise FileNotFoundError(
@@ -197,6 +198,9 @@ def train_qlora(
     if len(dataset) == 0:
         raise ValueError(f"no training rows found in {train_path}")
 
+    if optimizer == "auto":
+        optimizer = "paged_adamw_8bit" if load_in_4bit else "adamw_torch"
+
     args = TrainingArguments(
         output_dir=str(output_dir),
         per_device_train_batch_size=batch_size,
@@ -208,7 +212,7 @@ def train_qlora(
         logging_steps=10,
         save_strategy="epoch",
         save_total_limit=2,
-        optim="paged_adamw_8bit",
+        optim=optimizer,
         gradient_checkpointing=True,
         report_to="none",
     )
@@ -239,6 +243,12 @@ def main() -> None:
     parser.add_argument("--lora-alpha", default=16, type=int)
     parser.add_argument("--lora-dropout", default=0.05, type=float)
     parser.add_argument("--max-steps", default=-1, type=int)
+    parser.add_argument(
+        "--optim",
+        default="auto",
+        choices=["auto", "adamw_torch", "paged_adamw_8bit"],
+        help="Use auto to select adamw_torch for --no-4bit and paged_adamw_8bit for 4-bit.",
+    )
     args = parser.parse_args()
 
     train_qlora(
@@ -255,6 +265,7 @@ def main() -> None:
         lora_alpha=args.lora_alpha,
         lora_dropout=args.lora_dropout,
         max_steps=args.max_steps,
+        optimizer=args.optim,
     )
 
 
