@@ -79,14 +79,13 @@ python -m src.generate_candidates \
   --no-4bit
 ```
 
-If PEFT fails with an incompatible `torchao` version, remove the old package:
+The training script automatically disables old Colab `torchao` packages that
+would otherwise break PEFT LoRA injection. If you see this warning, no action is
+needed:
 
-```bash
-pip uninstall -y torchao
+```text
+warning: disabled incompatible torchao ...
 ```
-
-Then rerun the training command. This is usually faster and safer than upgrading
-torchao inside a short Colab session.
 
 Mount Google Drive before long runs:
 
