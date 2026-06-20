@@ -7,6 +7,7 @@ import torch
 from peft import PeftModel
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
+from .compat import disable_incompatible_torchao
 from .generate_candidates import extract_code, format_chat_prompt
 from .io_utils import read_jsonl, write_jsonl
 from .task_schema import CodeRepairTask
@@ -36,6 +37,7 @@ def load_adapter_model(
         quantization_config=quantization_config,
         trust_remote_code=True,
     )
+    disable_incompatible_torchao()
     model = PeftModel.from_pretrained(model, adapter_dir)
     model.eval()
     return tokenizer, model
